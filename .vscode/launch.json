@@ -1,0 +1,78 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Bootloader",
+            "type": "cortex-debug",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/build/bootloader.elf",
+            "servertype": "stlink",
+            "device": "STM32F407VGTx",
+            "interface": "swd",
+            "svdFile": "${config:stm32.cltPath}/STMicroelectronics_CMSIS_SVD/STM32F407.svd",
+            "serverpath": "${workspaceFolder}/scripts/tools/gdbserver-wrapper.sh",
+            "gdbPath": "${config:stm32.cltPath}/GNU-tools-for-STM32/bin/arm-none-eabi-gdb",
+            "showDevDebugOutput": "raw",
+            "runToEntryPoint": "main",
+            "loadFiles": [
+                "${workspaceFolder}/build/bootloader.elf"
+            ],
+            "preLaunchTask": "CMake: Build Bootloader"
+        },
+        {
+            "name": "Debug Application",
+            "type": "cortex-debug",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/build/app.elf",
+            "servertype": "stlink",
+            "device": "STM32F407VGTx",
+            "interface": "swd",
+            "svdFile": "${config:stm32.cltPath}/STMicroelectronics_CMSIS_SVD/STM32F407.svd",
+            "serverpath": "${workspaceFolder}/scripts/tools/gdbserver-wrapper.sh",
+            "gdbPath": "${config:stm32.cltPath}/GNU-tools-for-STM32/bin/arm-none-eabi-gdb",
+            "showDevDebugOutput": "raw",
+            "runToEntryPoint": "main",
+            "loadFiles": [],
+            "preLaunchTask": "CMake: Build Application"
+        },
+        {
+            "name": "Debug Updater",
+            "type": "cortex-debug",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/build/updater.elf",
+            "servertype": "stlink",
+            "device": "STM32F407VGTx",
+            "interface": "swd",
+            "svdFile": "${config:stm32.cltPath}/STMicroelectronics_CMSIS_SVD/STM32F407.svd",
+            "serverpath": "${workspaceFolder}/scripts/tools/gdbserver-wrapper.sh",
+            "gdbPath": "${config:stm32.cltPath}/GNU-tools-for-STM32/bin/arm-none-eabi-gdb",
+            "showDevDebugOutput": "raw",
+            "runToEntryPoint": "main",
+            "preLaunchTask": "CMake: Build All"
+        },
+        {
+            "name": "Debug Full Firmware",
+            "type": "cortex-debug",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/build/bootloader.elf",
+            "servertype": "stlink",
+            "device": "STM32F407VGTx",
+            "interface": "swd",
+            "svdFile": "${config:stm32.cltPath}/STMicroelectronics_CMSIS_SVD/STM32F407.svd",
+            "serverpath": "${workspaceFolder}/scripts/tools/gdbserver-wrapper.sh",
+            "gdbPath": "${config:stm32.cltPath}/GNU-tools-for-STM32/bin/arm-none-eabi-gdb",
+            "showDevDebugOutput": "raw",
+            "runToEntryPoint": "main",
+            "loadFiles": [],
+            "postLaunchCommands": [
+                "add-symbol-file \"${workspaceFolder}/build/app.elf\"",
+                "add-symbol-file \"${workspaceFolder}/build/updater.elf\""
+            ],
+            "preLaunchTask": "CMake: Build All"
+        }
+    ]
+}

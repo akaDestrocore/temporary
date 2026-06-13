@@ -1,0 +1,71 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 22,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "default",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "YES",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/gcc-arm-none-eabi.cmake"
+      }
+    },
+    {
+      "name": "Debug",
+      "inherits": "default",
+      "displayName": "Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Release",
+      "inherits": "default",
+      "displayName": "Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "Debug",
+      "configurePreset": "Debug",
+      "displayName": "Build All (Debug)",
+      "jobs": 4
+    },
+    {
+      "name": "Release",
+      "configurePreset": "Release",
+      "displayName": "Build All (Release)",
+      "jobs": 4
+    },
+        {
+      "name": "Boot-Debug",
+      "configurePreset": "Debug",
+      "displayName": "Build Bootloader (Debug)",
+      "targets": ["bootloader.elf"],
+      "jobs": 4
+    },
+    {
+      "name": "App-Debug",
+      "configurePreset": "Debug",
+      "displayName": "Build Application (Debug)",
+      "targets": ["app.elf"],
+      "jobs": 4
+    },
+    {
+      "name": "Flash-Full",
+      "configurePreset": "Debug",
+      "displayName": "Build + Flash Full Firmware",
+      "targets": ["flash"],
+      "jobs": 4
+    }
+  ]
+}

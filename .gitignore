@@ -1,0 +1,10 @@
+
+Debug/
+
+build/
+
+*.pyc
+
+.venv/
+
+.vscode/settings.json
