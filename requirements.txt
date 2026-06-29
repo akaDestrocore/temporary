@@ -1,0 +1,5 @@
+Jinja2
+MarkupSafe
+prettytable
+pycryptodome
+wcwidth
