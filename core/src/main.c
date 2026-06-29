@@ -120,14 +120,12 @@ int main(void)
     nextion.gpio_ahb1_bits = RCC_AHB1ENR_GPIOBEN;
     nextion.apbx_bit = RCC_APB1ENR_USART3EN;
     nextion.is_apb2 = 0U;
-    nextion.apb_freq_hz = 48000000U; // 96 MHz HCLK / PPRE1_DIV2
+    nextion.apb_freq_hz = HAL_RCC_GetPCLK1Freq();
     nextion.baud_rate = 9600U;
     nextion.irqn = USART3_IRQn;
     nextion.nvic_priority = 8U;
     nextion.ack_timeout_ms = 200U;
     (void)nextion_init(&nextion);
-
-    nextion_sendCmd("page 15");
     /* USER CODE END 2 */
 
     /* Infinite loop */
@@ -148,6 +146,16 @@ int main(void)
         }
 
         if (true == isButtonDebounced()) {
+            (void)nextion_sendCmd("page 34");
+
+            while ((true == nextion_isBusy()) && (HAL_GetTick() < (HAL_GetTick() + 1000U))) {
+                // bekle
+            }
+
+            if (NEXTION_STATUS_OK != nextion_getLastCommandStatus()) {
+                continue;
+            }
+
             deinit_system();
             jumpToUpdater();
         }

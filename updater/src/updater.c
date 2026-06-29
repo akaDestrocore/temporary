@@ -361,6 +361,7 @@ Updater_Err_e updater_run(void) {
     }
 
     nextion_sendProgress(100U);
+    nextion_sendCmd("rest");
     // TODO: add jump later
     HAL_Delay(2000U);
     NVIC_SystemReset();
