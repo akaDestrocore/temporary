@@ -28,7 +28,7 @@ extern "C" {
 /* =========================================================================
  * Firmware dosya tanımlaması
  * ========================================================================= */
-#define UPDATER_FIRMWARE_FILENAME "/FIRMWARE.BIN"
+#define UPDATER_FIRMWARE_FILENAME "/GENXR4.BIN"
 
 /* =========================================================================
  * Dosya I/O parça boyutu (4'e hizalı olmalıdır)

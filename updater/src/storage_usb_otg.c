@@ -105,7 +105,7 @@ void OTG_FS_IRQHandler(void) {
 
 /**
   * @brief Sürücü prefiksini ekleyerek bir FatFS yolu oluşturur
-  * @param pOut Hedef buffer (en az _MAX_LFN + 1 byte olmalı).
+  * @param pOut Hedef buffer (en az FF_MAX_LFN + 1 byte olmalı).
   * @param outSize pOut boyutu (byte cinsinden).
   * @param pPath Root dizine göre yol, örn. "/FIRMWARE.BIN"
   * @retval None
@@ -202,7 +202,7 @@ static StorageApi_Status_e usb_otg_isReady(void) {
   * @retval STORAGE_STATUS_OK veya hata kodu.
   */
 static StorageApi_Status_e usb_otg_fileOpen(const char *pPath) {
-    char fullPath[_MAX_LFN + 1U];
+    char fullPath[FF_MAX_LFN + 1U];
 
     if (NULL == pPath) {
         return STORAGE_STATUS_INVALID_PARAM;

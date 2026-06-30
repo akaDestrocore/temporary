@@ -19,7 +19,7 @@
 
 
 #ifndef _FATFS
-#define _FATFS	68300	/* Revision ID */
+#define _FATFS	80386	/* Revision ID */
 
 #ifdef __cplusplus
 extern "C" {
@@ -91,7 +91,7 @@ typedef struct {
 	WORD	id;				/* File system mount ID */
 	WORD	n_rootdir;		/* Number of root directory entries (FAT12/16) */
 	WORD	csize;			/* Cluster size [sectors] */
-#if _MAX_SS != _MIN_SS
+#if FF_MAX_SS != _MIN_SS
 	WORD	ssize;			/* Sector size (512, 1024, 2048 or 4096) */
 #endif
 #if _USE_LFN != 0
@@ -122,7 +122,7 @@ typedef struct {
 	DWORD	dirbase;		/* Root directory base sector/cluster */
 	DWORD	database;		/* Data base sector */
 	DWORD	winsect;		/* Current sector appearing in the win[] */
-	BYTE	win[_MAX_SS];	/* Disk access window for Directory, FAT (and file data at tiny cfg) */
+	BYTE	win[FF_MAX_SS];	/* Disk access window for Directory, FAT (and file data at tiny cfg) */
 } FATFS;
 
 
@@ -167,7 +167,7 @@ typedef struct {
 	DWORD*	cltbl;			/* Pointer to the cluster link map table (nulled on open, set by application) */
 #endif
 #if !_FS_TINY
-	BYTE	buf[_MAX_SS];	/* File private data read/write window */
+	BYTE	buf[FF_MAX_SS];	/* File private data read/write window */
 #endif
 } FIL;
 
@@ -201,7 +201,7 @@ typedef struct {
 	BYTE	fattrib;		/* File attribute */
 #if _USE_LFN != 0
 	TCHAR	altname[13];			/* Alternative file name */
-	TCHAR	fname[_MAX_LFN + 1];	/* Primary file name */
+	TCHAR	fname[FF_MAX_LFN + 1];	/* Primary file name */
 #else
 	TCHAR	fname[13];		/* File name */
 #endif
@@ -344,7 +344,7 @@ int ff_del_syncobj (_SYNC_t sobj);				/* Delete a sync object */
 #define FS_FAT12	1
 #define FS_FAT16	2
 #define FS_FAT32	3
-#define FS_EXFAT	4
+#define _FS_EXFAT	4
 
 /* File attribute bits for directory entry (FILINFO.fattrib) */
 #define	AM_RDO	0x01	/* Read only */

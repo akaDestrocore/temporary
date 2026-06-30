@@ -1,40 +1,20 @@
-/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file    usbh_diskio.h (based on usbh_diskio_template.h v2.0.2)
-  * @brief   Header for usbh_diskio.c module
+  * @file    usbh_diskio.h
+  * @brief   Header for usbh_diskio.c (ported to FatFs R0.16 / DWORD).
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2026 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
+  * Copyright (c) 2026 STMicroelectronics. All rights reserved.
   ******************************************************************************
   */
-/* USER CODE END Header */
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __USBH_DISKIO_H
-#define __USBH_DISKIO_H
 
-/* USER CODE BEGIN firstSection */
-/* can be used to modify / undefine following code or add new definitions */
-/* USER CODE END firstSection */
+#ifndef USBH_DISKIO_H
+#define USBH_DISKIO_H
 
-/* Includes ------------------------------------------------------------------*/
 #include "usbh_core.h"
 #include "usbh_msc.h"
-/* Exported types ------------------------------------------------------------*/
-/* Exported constants --------------------------------------------------------*/
-/* Exported functions ------------------------------------------------------- */
-extern const Diskio_drvTypeDef  USBH_Driver;
 
-/* USER CODE BEGIN lastSection */
-/* can be used to modify / undefine previous code or add new definitions */
-/* USER CODE END lastSection */
+extern const DiskioDrv_t g_usbhDriver;
 
-#endif /* __USBH_DISKIO_H */
-
+#endif // USBH_DISKIO_H

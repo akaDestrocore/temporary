@@ -1,144 +1,90 @@
 /*-----------------------------------------------------------------------*/
-/* Low level disk I/O module skeleton for FatFs     (C)ChaN, 2017        */
-/*                                                                       */
-/*   Portions COPYRIGHT 2017 STMicroelectronics                          */
-/*   Portions Copyright (C) 2017, ChaN, all right reserved               */
-/*-----------------------------------------------------------------------*/
-/* If a working storage control module is available, it should be        */
-/* attached to the FatFs via a glue function rather than modifying it.   */
-/* This is an example of glue functions to attach various existing      */
-/* storage control modules to the FatFs module with a defined API.       */
+/* Low level disk I/O glue, dispatches to linked Diskio_drv table.       */
+/* Ported to FatFs R0.16 (DWORD).                                        */
 /*-----------------------------------------------------------------------*/
 
-/* Includes ------------------------------------------------------------------*/
 #include "diskio.h"
 #include "ff_gen_drv.h"
 
-#if defined ( __GNUC__ )
-#ifndef __weak
-#define __weak __attribute__((weak))
-#endif
-#endif
-
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-extern Disk_drvTypeDef  disk;
-
-/* Private function prototypes -----------------------------------------------*/
-/* Private functions ---------------------------------------------------------*/
+extern DiskDrv_t g_diskDrv;
 
 /**
-  * @brief  Gets Disk Status
-  * @param  pdrv: Physical drive number (0..)
-  * @retval DSTATUS: Operation status
+  * @brief Gets disk status.
+  * @param pdrv Physical drive number (0..).
+  * @retval DSTATUS Operation status.
   */
-DSTATUS disk_status (
-	BYTE pdrv		/* Physical drive number to identify the drive */
-)
+DSTATUS disk_status(BYTE pdrv)
 {
-  DSTATUS stat;
-
-  stat = disk.drv[pdrv]->disk_status(disk.lun[pdrv]);
-  return stat;
+    return g_diskDrv.ppDrv[pdrv]->disk_status(g_diskDrv.lun[pdrv]);
 }
 
 /**
-  * @brief  Initializes a Drive
-  * @param  pdrv: Physical drive number (0..)
-  * @retval DSTATUS: Operation status
+  * @brief Initializes a drive.
+  * @param pdrv Physical drive number (0..).
+  * @retval DSTATUS Operation status.
   */
-DSTATUS disk_initialize (
-	BYTE pdrv				/* Physical drive nmuber to identify the drive */
-)
+DSTATUS disk_initialize(BYTE pdrv)
 {
-  DSTATUS stat = RES_OK;
+    DSTATUS stat = RES_OK;
 
-  if(disk.is_initialized[pdrv] == 0)
-  {
-    stat = disk.drv[pdrv]->disk_initialize(disk.lun[pdrv]);
-    if(stat == RES_OK)
+    if (0U == g_diskDrv.isInitialized[pdrv])
     {
-      disk.is_initialized[pdrv] = 1;
+        stat = g_diskDrv.ppDrv[pdrv]->disk_initialize(g_diskDrv.lun[pdrv]);
+        if (0U == stat)
+        {
+            g_diskDrv.isInitialized[pdrv] = 1U;
+        }
     }
-  }
-  return stat;
+
+    return stat;
 }
 
 /**
-  * @brief  Reads Sector(s)
-  * @param  pdrv: Physical drive number (0..)
-  * @param  *buff: Data buffer to store read data
-  * @param  sector: Sector address (LBA)
-  * @param  count: Number of sectors to read (1..128)
-  * @retval DRESULT: Operation result
+  * @brief Reads sector(s).
+  * @param pdrv Physical drive number (0..).
+  * @param buff Data buffer to store read data.
+  * @param sector Sector address (LBA).
+  * @param count Number of sectors to read (1..128).
+  * @retval DRESULT Operation result.
   */
-DRESULT disk_read (
-	BYTE pdrv,		/* Physical drive nmuber to identify the drive */
-	BYTE *buff,		/* Data buffer to store read data */
-	DWORD sector,	        /* Sector address in LBA */
-	UINT count		/* Number of sectors to read */
-)
+DRESULT disk_read(BYTE pdrv, BYTE *buff, DWORD sector, UINT count)
 {
-  DRESULT res;
-
-  res = disk.drv[pdrv]->disk_read(disk.lun[pdrv], buff, sector, count);
-  return res;
+    return g_diskDrv.ppDrv[pdrv]->disk_read(g_diskDrv.lun[pdrv], buff, sector, count);
 }
 
 /**
-  * @brief  Writes Sector(s)
-  * @param  pdrv: Physical drive number (0..)
-  * @param  *buff: Data to be written
-  * @param  sector: Sector address (LBA)
-  * @param  count: Number of sectors to write (1..128)
-  * @retval DRESULT: Operation result
+  * @brief Writes sector(s).
+  * @param pdrv Physical drive number (0..).
+  * @param buff Data to be written.
+  * @param sector Sector address (LBA).
+  * @param count Number of sectors to write (1..128).
+  * @retval DRESULT Operation result.
   */
-#if _USE_WRITE == 1
-DRESULT disk_write (
-	BYTE pdrv,		/* Physical drive nmuber to identify the drive */
-	const BYTE *buff,	/* Data to be written */
-	DWORD sector,		/* Sector address in LBA */
-	UINT count        	/* Number of sectors to write */
-)
+#if FF_FS_READONLY == 0
+DRESULT disk_write(BYTE pdrv, const BYTE *buff, DWORD sector, UINT count)
 {
-  DRESULT res;
-
-  res = disk.drv[pdrv]->disk_write(disk.lun[pdrv], buff, sector, count);
-  return res;
+    return g_diskDrv.ppDrv[pdrv]->disk_write(g_diskDrv.lun[pdrv], buff, sector, count);
 }
-#endif /* _USE_WRITE == 1 */
+#endif // FF_FS_READONLY == 0
 
 /**
-  * @brief  I/O control operation
-  * @param  pdrv: Physical drive number (0..)
-  * @param  cmd: Control code
-  * @param  *buff: Buffer to send/receive control data
-  * @retval DRESULT: Operation result
+  * @brief I/O control operation.
+  * @param pdrv Physical drive number (0..).
+  * @param cmd Control code.
+  * @param buff Buffer to send/receive control data.
+  * @retval DRESULT Operation result.
   */
-#if _USE_IOCTL == 1
-DRESULT disk_ioctl (
-	BYTE pdrv,		/* Physical drive nmuber (0..) */
-	BYTE cmd,		/* Control code */
-	void *buff		/* Buffer to send/receive control data */
-)
+DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void *buff)
 {
-  DRESULT res;
-
-  res = disk.drv[pdrv]->disk_ioctl(disk.lun[pdrv], cmd, buff);
-  return res;
+    return g_diskDrv.ppDrv[pdrv]->disk_ioctl(g_diskDrv.lun[pdrv], cmd, buff);
 }
-#endif /* _USE_IOCTL == 1 */
 
 /**
-  * @brief  Gets Time from RTC
-  * @param  None
-  * @retval Time in DWORD
+  * @brief Gets time from RTC. Project has no RTC; fixed timestamp via FF_FS_NORTC
+  *        is preferred, but this weak symbol is kept for upstream compatibility.
+  * @retval Time in DWORD (0 — see fatfs.c override).
   */
-__weak DWORD get_fattime (void)
+__attribute__((weak)) DWORD get_fattime(void)
 {
-  return 0;
+    return 0UL;
 }
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
-

@@ -130,21 +130,47 @@ int main(void)
     nextion.ack_timeout_ms = 200U;
     (void)nextion_init(&nextion);
 
-    (void)nextion_sendCmd("n0.val=0");
-    (void)nextion_sendCmd("tm0.en=0");
-    (void)nextion_sendCmd("tm1.en=0");
-    (void)nextion_sendCmd("j0.val=100");
-    (void)nextion_sendCmd("page 35");
-    char cmdBuff[NEXTION_CMD_MAX_LEN + 1U];
-    (void)snprintf(cmdBuff, sizeof(cmdBuff), "page35.t1.txt=\"VERSION:V%02u.%02u.%02u\"", (unsigned int)image_header.version_major,
-                                    (unsigned int)image_header.version_minor,(unsigned int)image_header.version_patch);
-    (void)nextion_sendCmd(cmdBuff);
-    HAL_Delay(1000);
-    memset(cmdBuff, 0x00, sizeof(cmdBuff));
-    (void)snprintf(cmdBuff, sizeof(cmdBuff), "page35.t2.txt=\"BUILD:%s\"",image_header.git_sha);
-    (void)nextion_sendCmd(cmdBuff);
+    Nextion_Status_e screenStatus = NEXTION_STATUS_ERROR;
+    do {
+        screenStatus = nextion_sendCmd("n0.val=0");
+        nextion_process();
+    } while (NEXTION_STATUS_OK != screenStatus);
 
-    gAppState = APP_STATE_POST_LOAD;
+    do {
+        screenStatus = nextion_sendCmd("tm0.en=0");
+        nextion_process();
+    } while (NEXTION_STATUS_OK != screenStatus);
+
+    do {
+        screenStatus = nextion_sendCmd("tm1.en=0");
+        nextion_process();
+    } while (NEXTION_STATUS_OK != screenStatus);
+
+    do {
+        screenStatus = nextion_sendCmd("j0.val=100");
+        nextion_process();
+    } while (NEXTION_STATUS_OK != screenStatus);
+
+    do {
+        screenStatus = nextion_sendCmd("page 35");
+        nextion_process();
+    } while (NEXTION_STATUS_OK != screenStatus);
+
+    char cmdBuff[NEXTION_CMD_MAX_LEN + 1U];
+    (void)snprintf(cmdBuff, sizeof(cmdBuff), "page35.t1.txt=\"VERSION: V %02u.%02u.%02u\"", (unsigned int)image_header.version_major,
+                                    (unsigned int)image_header.version_minor,(unsigned int)image_header.version_patch);
+    do {
+        screenStatus = nextion_sendCmd(cmdBuff);
+        nextion_process();
+    } while (NEXTION_STATUS_OK != screenStatus);
+    memset(cmdBuff, 0x00, sizeof(cmdBuff));
+    (void)snprintf(cmdBuff, sizeof(cmdBuff), "page35.t2.txt=\"BUILD  : %s\"",image_header.git_sha);
+    do {
+        screenStatus = nextion_sendCmd(cmdBuff);
+        nextion_process();
+    } while (NEXTION_STATUS_OK != screenStatus);
+
+    gAppState = APP_STATE_MENU;
     /* USER CODE END 2 */
 
     /* Infinite loop */
@@ -172,7 +198,10 @@ int main(void)
                         (0x65 == frame.code) && (3U <= frame.length) &&
                         (0x01U == frame.data[0]) && (0x09U == frame.data[1]) &&
                         (0x01U == frame.data[2])) {
-                            (void)nextion_sendCmd("page 20");
+                            do {
+                                screenStatus = nextion_sendCmd("page 20");
+                                nextion_process();
+                            } while (NEXTION_STATUS_OK != screenStatus);
 
                             uint32_t deadline = HAL_GetTick() + 1000U;
                             while (true == nextion_isBusy()) {
@@ -196,7 +225,10 @@ int main(void)
                         (0x24U == frame.data[0]) && (0x08U == frame.data[1]) &&
                         (0x01U == frame.data[2])) {
                             
-                            (void)nextion_sendCmd("page 34");
+                            do {
+                                screenStatus = nextion_sendCmd("page 34");
+                                nextion_process();
+                            } while (NEXTION_STATUS_OK != screenStatus);
 
                             uint32_t deadline = HAL_GetTick() + 1000U;
                             while (true == nextion_isBusy()) {

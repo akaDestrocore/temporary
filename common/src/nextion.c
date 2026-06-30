@@ -283,14 +283,6 @@ void nextion_process(void) {
 /**
  * @brief `USARTx_IRQHandler()` içinde çağrılan USART kesme işleyicisi.
  * @retval None
- * @details Üç tane SR bayrağını işler - RXNE, TXE ve TXEIE. RXNE setlenmiş 
- *          olduğunda DR'dan bir bayt veri alınır ve ring buffer'ın içine 
- *          koyulur. DR'nin sürekli okunması dolaylı olarak RXNE ve ORE 
- *          bayraklarını temizler. Manuel olarak TXEIE'yi açtıktan sonra her 
- *          TXE biti setlendiğinde  USART'ın TX yapmaya hazır olduğu anlamına gelir. 
- *          TX ring buffer'ı boş olmadığında hemen ring buffer'ın içinden bir bayt 
- *          alınır ve DR'ye iletilir. TX ring buffer boşaldığında TXEIE kapatılır 
- *          ve gTxBusy bayrağı resetlenir.
  */
 void nextion_irqHandler(void) {
     
@@ -316,8 +308,17 @@ void nextion_irqHandler(void) {
             gConfig.pUsart->DR = (uint32_t)txBuff_pop();
         } else {
             gConfig.pUsart->CR1 &= ~USART_CR1_TXEIE;
+            gConfig.pUsart->CR1 |= USART_CR1_TCIE;
             gTxBusy = false;
         }
+    }
+
+    // TC
+    if ((0U != (cr1 & USART_CR1_TCIE)) && (0U != (sr & USART_SR_TC))) {
+        // Bayt iletimi sonlandırdığında USART TC biti set eder
+        gConfig.pUsart->SR &= ~USART_SR_TC;
+        gConfig.pUsart->CR1 &= ~USART_CR1_TCIE;
+        gTxBusy = false;
     }
 }
 
