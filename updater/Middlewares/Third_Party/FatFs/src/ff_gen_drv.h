@@ -12,93 +12,69 @@
   * the "License"; You may not use this file except in compliance with the
   * License. You may obtain a copy of the License at:
   *                       opensource.org/licenses/BSD-3-Clause
+  *
   ******************************************************************************
-  */
+**/
 
-#ifndef FF_GEN_DRV_H
-#define FF_GEN_DRV_H
+/* Define to prevent recursive inclusion -------------------------------------*/
+#ifndef __FF_GEN_DRV_H
+#define __FF_GEN_DRV_H
 
 #ifdef __cplusplus
-extern "C" {
+ extern "C" {
 #endif
 
+/* Includes ------------------------------------------------------------------*/
 #include "diskio.h"
 #include "ff.h"
-#include <stdint.h>
+#include "stdint.h"
 
-// ============================================================
-// Public types
-// ============================================================
+
+/* Exported types ------------------------------------------------------------*/
 
 /**
-  * @brief Disk IO driver function pointer table.
+  * @brief  Disk IO Driver structure definition
   */
 typedef struct
 {
-    DSTATUS (*disk_initialize)(BYTE pDrv);
-    DSTATUS (*disk_status)(BYTE pDrv);
-    DRESULT (*disk_read)(BYTE pDrv, BYTE *pBuff, DWORD sector, UINT count);
-#if FF_FS_READONLY == 0
-    DRESULT (*disk_write)(BYTE pDrv, const BYTE *pBuff, DWORD sector, UINT count);
-#endif // FF_FS_READONLY == 0
-    DRESULT (*disk_ioctl)(BYTE pDrv, BYTE cmd, void *pBuff);
-} DiskioDrv_t;
+  DSTATUS (*disk_initialize) (BYTE);                     /*!< Initialize Disk Drive                     */
+  DSTATUS (*disk_status)     (BYTE);                     /*!< Get Disk Status                           */
+  DRESULT (*disk_read)       (BYTE, BYTE*, DWORD, UINT);       /*!< Read Sector(s)                            */
+#if _USE_WRITE == 1
+  DRESULT (*disk_write)      (BYTE, const BYTE*, DWORD, UINT); /*!< Write Sector(s) when _USE_WRITE = 0       */
+#endif /* _USE_WRITE == 1 */
+#if _USE_IOCTL == 1
+  DRESULT (*disk_ioctl)      (BYTE, BYTE, void*);              /*!< I/O control operation when _USE_IOCTL = 1 */
+#endif /* _USE_IOCTL == 1 */
+
+}Diskio_drvTypeDef;
 
 /**
-  * @brief Global table of linked disk IO drivers (one per logical volume).
+  * @brief  Global Disk IO Drivers structure definition
   */
 typedef struct
 {
-    uint8_t          isInitialized[FF_VOLUMES];
-    const DiskioDrv_t *ppDrv[FF_VOLUMES];
-    uint8_t          lun[FF_VOLUMES];
-    volatile uint8_t nbr;
-} DiskDrv_t;
+  uint8_t                 is_initialized[_VOLUMES];
+  const Diskio_drvTypeDef *drv[_VOLUMES];
+  uint8_t                 lun[_VOLUMES];
+  volatile uint8_t        nbr;
 
-// ============================================================
-// Public API
-// ============================================================
+}Disk_drvTypeDef;
 
-/**
-  * @brief Links a compatible diskio driver and returns the assigned logical path.
-  * @param pDrv Pointer to the disk IO driver structure.
-  * @param pPath Pointer to the logical drive path buffer (min. 4 bytes).
-  * @retval 0 on success, 1 if no free volume slot is available.
-  */
-uint8_t fatfsGenDrv_linkDriver(const DiskioDrv_t *pDrv, char *pPath);
-
-/**
-  * @brief Links a compatible diskio driver with an explicit LUN.
-  * @param pDrv Pointer to the disk IO driver structure.
-  * @param pPath Pointer to the logical drive path buffer (min. 4 bytes).
-  * @param lun Logical unit number (multi-LUN devices, e.g. USB MSC).
-  * @retval 0 on success, 1 if no free volume slot is available.
-  */
-uint8_t fatfsGenDrv_linkDriverEx(const DiskioDrv_t *pDrv, char *pPath, BYTE lun);
-
-/**
-  * @brief Unlinks a diskio driver bound to the given logical drive path.
-  * @param pPath Pointer to the logical drive path.
-  * @retval 0 on success, 1 on error.
-  */
-uint8_t fatfsGenDrv_unlinkDriver(char *pPath);
-
-/**
-  * @brief Unlinks a diskio driver with an explicit LUN.
-  * @param pPath Pointer to the logical drive path.
-  * @param lun Logical unit number.
-  * @retval 0 on success, 1 on error.
-  */
-uint8_t fatfsGenDrv_unlinkDriverEx(char *pPath, BYTE lun);
-
-/**
-  * @brief Returns the number of currently linked drivers.
-  * @retval Number of attached drivers.
-  */
-uint8_t fatfsGenDrv_getAttachedDriversNbr(void);
+/* Exported constants --------------------------------------------------------*/
+/* Exported macro ------------------------------------------------------------*/
+/* Exported functions ------------------------------------------------------- */
+uint8_t FATFS_LinkDriver(const Diskio_drvTypeDef *drv, char *path);
+uint8_t FATFS_UnLinkDriver(char *path);
+uint8_t FATFS_LinkDriverEx(const Diskio_drvTypeDef *drv, char *path, BYTE lun);
+uint8_t FATFS_UnLinkDriverEx(char *path, BYTE lun);
+uint8_t FATFS_GetAttachedDriversNbr(void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // FF_GEN_DRV_H
+#endif /* __FF_GEN_DRV_H */
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+

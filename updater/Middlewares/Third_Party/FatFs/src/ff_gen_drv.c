@@ -12,108 +12,111 @@
   * the "License"; You may not use this file except in compliance with the
   * License. You may obtain a copy of the License at:
   *                       opensource.org/licenses/BSD-3-Clause
+  *
   ******************************************************************************
-  */
-
+**/
+/* Includes ------------------------------------------------------------------*/
 #include "ff_gen_drv.h"
 
-// ============================================================
-// Module state
-// ============================================================
-DiskDrv_t g_diskDrv = { { 0 }, { 0 }, { 0 }, 0U };
+/* Private typedef -----------------------------------------------------------*/
+/* Private define ------------------------------------------------------------*/
+/* Private variables ---------------------------------------------------------*/
+Disk_drvTypeDef disk = {{0},{0},{0},0};
 
-// ============================================================
-// Public API
-// ============================================================
+/* Private function prototypes -----------------------------------------------*/
+/* Private functions ---------------------------------------------------------*/
 
 /**
-  * @brief Links a compatible diskio driver/lun id and increments the number of
-  *        active linked drivers.
-  * @param pDrv Pointer to the disk IO driver structure.
-  * @param pPath Pointer to the logical drive path.
-  * @param lun Logical unit id (0 for single-LUN devices).
-  * @retval 0 on success, 1 otherwise.
+  * @brief  Links a compatible diskio driver/lun id and increments the number of active
+  *         linked drivers.
+  * @note   The number of linked drivers (volumes) is up to 10 due to FatFs limits.
+  * @param  drv: pointer to the disk IO Driver structure
+  * @param  path: pointer to the logical drive path
+  * @param  lun : only used for USB Key Disk to add multi-lun management
+            else the parameter must be equal to 0
+  * @retval Returns 0 in case of success, otherwise 1.
   */
-uint8_t fatfsGenDrv_linkDriverEx(const DiskioDrv_t *pDrv, char *pPath, BYTE lun)
+uint8_t FATFS_LinkDriverEx(const Diskio_drvTypeDef *drv, char *path, uint8_t lun)
 {
-    uint8_t ret = 1U;
-    uint8_t diskNum = 0U;
+  uint8_t ret = 1;
+  uint8_t DiskNum = 0;
 
-    if (g_diskDrv.nbr < FF_VOLUMES)
+  if(disk.nbr < _VOLUMES)
+  {
+    disk.is_initialized[disk.nbr] = 0;
+    disk.drv[disk.nbr] = drv;
+    disk.lun[disk.nbr] = lun;
+    DiskNum = disk.nbr++;
+    path[0] = DiskNum + '0';
+    path[1] = ':';
+    path[2] = '/';
+    path[3] = 0;
+    ret = 0;
+  }
+
+  return ret;
+}
+
+/**
+  * @brief  Links a compatible diskio driver and increments the number of active
+  *         linked drivers.
+  * @note   The number of linked drivers (volumes) is up to 10 due to FatFs limits
+  * @param  drv: pointer to the disk IO Driver structure
+  * @param  path: pointer to the logical drive path
+  * @retval Returns 0 in case of success, otherwise 1.
+  */
+uint8_t FATFS_LinkDriver(const Diskio_drvTypeDef *drv, char *path)
+{
+  return FATFS_LinkDriverEx(drv, path, 0);
+}
+
+/**
+  * @brief  Unlinks a diskio driver and decrements the number of active linked
+  *         drivers.
+  * @param  path: pointer to the logical drive path
+  * @param  lun : not used
+  * @retval Returns 0 in case of success, otherwise 1.
+  */
+uint8_t FATFS_UnLinkDriverEx(char *path, uint8_t lun)
+{
+  uint8_t DiskNum = 0;
+  uint8_t ret = 1;
+
+  if(disk.nbr >= 1)
+  {
+    DiskNum = path[0] - '0';
+    if(disk.drv[DiskNum] != 0)
     {
-        g_diskDrv.isInitialized[g_diskDrv.nbr] = 0U;
-        g_diskDrv.ppDrv[g_diskDrv.nbr] = pDrv;
-        g_diskDrv.lun[g_diskDrv.nbr] = lun;
-        diskNum = g_diskDrv.nbr;
-        g_diskDrv.nbr++;
-
-        pPath[0] = (char)(diskNum + '0');
-        pPath[1] = ':';
-        pPath[2] = '/';
-        pPath[3] = 0;
-        ret = 0U;
+      disk.drv[DiskNum] = 0;
+      disk.lun[DiskNum] = 0;
+      disk.nbr--;
+      ret = 0;
     }
+  }
 
-    return ret;
+  return ret;
 }
 
 /**
-  * @brief Links a compatible diskio driver and increments the number of
-  *        active linked drivers.
-  * @param pDrv Pointer to the disk IO driver structure.
-  * @param pPath Pointer to the logical drive path.
-  * @retval 0 on success, 1 otherwise.
+  * @brief  Unlinks a diskio driver and decrements the number of active linked
+  *         drivers.
+  * @param  path: pointer to the logical drive path
+  * @retval Returns 0 in case of success, otherwise 1.
   */
-uint8_t fatfsGenDrv_linkDriver(const DiskioDrv_t *pDrv, char *pPath)
+uint8_t FATFS_UnLinkDriver(char *path)
 {
-    return fatfsGenDrv_linkDriverEx(pDrv, pPath, 0U);
+  return FATFS_UnLinkDriverEx(path, 0);
 }
 
 /**
-  * @brief Unlinks a diskio driver and decrements the number of active linked
-  *        drivers.
-  * @param pPath Pointer to the logical drive path.
-  * @param lun Not used.
-  * @retval 0 on success, 1 otherwise.
-  */
-uint8_t fatfsGenDrv_unlinkDriverEx(char *pPath, BYTE lun)
-{
-    uint8_t diskNum = 0U;
-    uint8_t ret = 1U;
-
-    (void)lun;
-
-    if (g_diskDrv.nbr >= 1U)
-    {
-        diskNum = (uint8_t)(pPath[0] - '0');
-        if (NULL != g_diskDrv.ppDrv[diskNum])
-        {
-            g_diskDrv.ppDrv[diskNum] = NULL;
-            g_diskDrv.lun[diskNum] = 0U;
-            g_diskDrv.nbr--;
-            ret = 0U;
-        }
-    }
-
-    return ret;
-}
-
-/**
-  * @brief Unlinks a diskio driver and decrements the number of active linked
-  *        drivers.
-  * @param pPath Pointer to the logical drive path.
-  * @retval 0 on success, 1 otherwise.
-  */
-uint8_t fatfsGenDrv_unlinkDriver(char *pPath)
-{
-    return fatfsGenDrv_unlinkDriverEx(pPath, 0U);
-}
-
-/**
-  * @brief Gets number of linked drivers to the FatFs module.
+  * @brief  Gets number of linked drivers to the FatFs module.
+  * @param  None
   * @retval Number of attached drivers.
   */
-uint8_t fatfsGenDrv_getAttachedDriversNbr(void)
+uint8_t FATFS_GetAttachedDriversNbr(void)
 {
-    return g_diskDrv.nbr;
+  return disk.nbr;
 }
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+

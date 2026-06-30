@@ -1,17 +1,7 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  *  FatFs - Generic FAT file system module  R0.12c (C)ChaN, 2017
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2026 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
+  *  FatFs - Generic FAT file system module  R0.16 (C)ChaN, 2025
   ******************************************************************************
   */
 /* USER CODE END Header */
@@ -54,7 +44,7 @@
 #define FF_PATH_DEPTH       10
 
 // ---- Drive / volume ----
-#define FF_VOLUMES          1
+#define _VOLUMES          1
 #define FF_STR_VOLUME_ID    0
 #define FF_VOLUME_STRS      "RAM","NAND","CF","SD1","SD2","USB1","USB2","USB3"
 #define FF_MULTI_PARTITION  0

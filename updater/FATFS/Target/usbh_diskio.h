@@ -15,6 +15,6 @@
 #include "usbh_core.h"
 #include "usbh_msc.h"
 
-extern const DiskioDrv_t g_usbhDriver;
+extern Diskio_drvTypeDef USBH_Driver;
 
 #endif // USBH_DISKIO_H

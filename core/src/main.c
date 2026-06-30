@@ -152,7 +152,7 @@ int main(void)
     } while (NEXTION_STATUS_OK != screenStatus);
 
     do {
-        screenStatus = nextion_sendCmd("page 35");
+        screenStatus = nextion_sendCmd("page 1");
         nextion_process();
     } while (NEXTION_STATUS_OK != screenStatus);
 
@@ -170,7 +170,7 @@ int main(void)
         nextion_process();
     } while (NEXTION_STATUS_OK != screenStatus);
 
-    gAppState = APP_STATE_MENU;
+    gAppState = APP_STATE_POST_LOAD;
     /* USER CODE END 2 */
 
     /* Infinite loop */
@@ -186,7 +186,7 @@ int main(void)
         if ((now - gLastToggleTick) >=500) {
             gLastToggleTick = now;
             gLedState = !gLedState;
-            HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, gLedState ? GPIO_PIN_SET : GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, gLedState ? GPIO_PIN_SET : GPIO_PIN_RESET);
         }
 
         Nextion_Frame_t frame;
@@ -198,10 +198,7 @@ int main(void)
                         (0x65 == frame.code) && (3U <= frame.length) &&
                         (0x01U == frame.data[0]) && (0x09U == frame.data[1]) &&
                         (0x01U == frame.data[2])) {
-                            do {
-                                screenStatus = nextion_sendCmd("page 20");
-                                nextion_process();
-                            } while (NEXTION_STATUS_OK != screenStatus);
+                            screenStatus = nextion_sendCmd("page 20");
 
                             uint32_t deadline = HAL_GetTick() + 1000U;
                             while (true == nextion_isBusy()) {
@@ -225,10 +222,7 @@ int main(void)
                         (0x24U == frame.data[0]) && (0x08U == frame.data[1]) &&
                         (0x01U == frame.data[2])) {
                             
-                            do {
-                                screenStatus = nextion_sendCmd("page 34");
-                                nextion_process();
-                            } while (NEXTION_STATUS_OK != screenStatus);
+                            (void)nextion_sendCmd("page 34");
 
                             uint32_t deadline = HAL_GetTick() + 1000U;
                             while (true == nextion_isBusy()) {
@@ -304,9 +298,9 @@ static void MX_GPIO_Init(void)
     __HAL_RCC_GPIOA_CLK_ENABLE();
 
     // PD12 — LED
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);
 
-    gpioInitStruct.Pin = GPIO_PIN_15;
+    gpioInitStruct.Pin = GPIO_PIN_12;
     gpioInitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     gpioInitStruct.Pull = GPIO_NOPULL;
     gpioInitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -365,7 +359,7 @@ static void deinit_system(void) {
 static void jumpToUpdater(void) {
     
     // LED kapatma
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);
 
     // Kontrol aktarımı sırasında tetiklenmemesi için SysTick'i devre dışı bırakma
     SysTick->CTRL = 0U;

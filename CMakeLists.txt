@@ -311,6 +311,7 @@ elseif(UPDATER_BACKEND STREQUAL "USB_OTG")
         ${UPDATER_MW_FATFS}/ff.c
         ${UPDATER_MW_FATFS}/ff_gen_drv.c
         ${UPDATER_MW_FATFS}/diskio.c
+        ${UPDATER_MW_FATFS}/ffunicode.c
 
         ${CMAKE_SOURCE_DIR}/updater/USB_HOST/Target/usbh_conf.c
         ${CMAKE_SOURCE_DIR}/updater/USB_HOST/App/usb_host.c

@@ -16,47 +16,46 @@
 
 extern USBH_HandleTypeDef hUSB_Host;
 
-static DSTATUS usbh_initialize(BYTE lun);
-static DSTATUS usbh_status(BYTE lun);
-static DRESULT usbh_read(BYTE lun, BYTE *pBuff, DWORD sector, UINT count);
+DSTATUS USBH_initialize(BYTE pdrv);
+DSTATUS USBH_status(BYTE pdrv);
+DRESULT USBH_read(BYTE pdrv, BYTE *pBuff, DWORD sector, UINT count);
 #if FF_FS_READONLY == 0
-static DRESULT usbh_write(BYTE lun, const BYTE *pBuff, DWORD sector, UINT count);
+    DRESULT USBH_write(BYTE pdrv, const BYTE *pBuff, DWORD sector, UINT count);
 #endif // FF_FS_READONLY == 0
-static DRESULT usbh_ioctl(BYTE lun, BYTE cmd, void *pBuff);
+    DRESULT USBH_ioctl(BYTE pdrv, BYTE cmd, void *pBuff);
 
-const DiskioDrv_t g_usbhDriver =
+Diskio_drvTypeDef USBH_Driver =
 {
-    usbh_initialize,
-    usbh_status,
-    usbh_read,
+    USBH_initialize,
+    USBH_status,
+    USBH_read,
 #if FF_FS_READONLY == 0
-    usbh_write,
+    USBH_write,
 #endif // FF_FS_READONLY == 0
-    usbh_ioctl,
+    USBH_ioctl,
 };
 
 /**
-  * @brief Initializes a drive. USB host stack must already be initialized
-  *        by the application before this is called.
-  * @param lun Logical unit id.
-  * @retval DSTATUS Operation status.
+  * @brief  Initializes a Drive
+  * @param  pdrv: Physical drive number (0..)
+  * @retval DSTATUS: Operation status
   */
-static DSTATUS usbh_initialize(BYTE lun)
+DSTATUS USBH_initialize(BYTE pdrv)
 {
-    (void)lun;
+    (void)pdrv;
     return RES_OK;
 }
 
 /**
-  * @brief Gets disk status.
-  * @param lun Logical unit id.
-  * @retval DSTATUS Operation status.
+  * @brief  Gets Disk Status
+  * @param  pdrv: Physical drive number (0..)
+  * @retval DSTATUS: Operation status
   */
-static DSTATUS usbh_status(BYTE lun)
+DSTATUS USBH_status(BYTE pdrv)
 {
     DSTATUS stat;
 
-    if (1U == USBH_MSC_UnitIsReady(&hUSB_Host, lun))
+    if (1U == USBH_MSC_UnitIsReady(&hUSB_Host, pdrv))
     {
         stat = RES_OK;
     }
@@ -69,25 +68,25 @@ static DSTATUS usbh_status(BYTE lun)
 }
 
 /**
-  * @brief Reads sector(s).
-  * @param lun Logical unit id.
-  * @param pBuff Data buffer to store read data.
-  * @param sector Sector address (LBA).
-  * @param count Number of sectors to read (1..128).
-  * @retval DRESULT Operation result.
+  * @brief  Reads Sector(s)
+  * @param  pdrv: Physical drive number (0..)
+  * @param  *buff: Data buffer to store read data
+  * @param  sector: Sector address (LBA)
+  * @param  count: Number of sectors to read (1..128)
+  * @retval DRESULT: Operation result
   */
-static DRESULT usbh_read(BYTE lun, BYTE *pBuff, DWORD sector, UINT count)
+DRESULT USBH_read(BYTE pdrv, BYTE *pBuff, DWORD sector, UINT count)
 {
     DRESULT res = RES_ERROR;
     MSC_LUNTypeDef info;
 
-    if (USBH_OK == USBH_MSC_Read(&hUSB_Host, lun, (uint32_t)sector, pBuff, count))
+    if (USBH_OK == USBH_MSC_Read(&hUSB_Host, pdrv, (uint32_t)sector, pBuff, count))
     {
         res = RES_OK;
     }
     else
     {
-        (void)USBH_MSC_GetLUNInfo(&hUSB_Host, lun, &info);
+        (void)USBH_MSC_GetLUNInfo(&hUSB_Host, pdrv, &info);
 
         switch (info.sense.asc)
         {
@@ -111,26 +110,26 @@ static DRESULT usbh_read(BYTE lun, BYTE *pBuff, DWORD sector, UINT count)
 }
 
 /**
-  * @brief Writes sector(s).
-  * @param lun Logical unit id.
-  * @param pBuff Data to be written.
-  * @param sector Sector address (LBA).
-  * @param count Number of sectors to write (1..128).
-  * @retval DRESULT Operation result.
+  * @brief  Writes Sector(s)
+  * @param  pdrv: Physical drive number (0..)
+  * @param  *buff: Data to be written
+  * @param  sector: Sector address (LBA)
+  * @param  count: Number of sectors to write (1..128)
+  * @retval DRESULT: Operation result
   */
 #if FF_FS_READONLY == 0
-static DRESULT usbh_write(BYTE lun, const BYTE *pBuff, DWORD sector, UINT count)
+DRESULT USBH_write(BYTE pdrv, const BYTE *pBuff, DWORD sector, UINT count)
 {
     DRESULT res = RES_ERROR;
     MSC_LUNTypeDef info;
 
-    if (USBH_OK == USBH_MSC_Write(&hUSB_Host, lun, (uint32_t)sector, (BYTE *)pBuff, count))
+    if (USBH_OK == USBH_MSC_Write(&hUSB_Host, pdrv, (uint32_t)sector, (BYTE *)pBuff, count))
     {
         res = RES_OK;
     }
     else
     {
-        (void)USBH_MSC_GetLUNInfo(&hUSB_Host, lun, &info);
+        (void)USBH_MSC_GetLUNInfo(&hUSB_Host, pdrv, &info);
 
         switch (info.sense.asc)
         {
@@ -161,13 +160,13 @@ static DRESULT usbh_write(BYTE lun, const BYTE *pBuff, DWORD sector, UINT count)
 #endif // FF_FS_READONLY == 0
 
 /**
-  * @brief I/O control operation.
-  * @param lun Logical unit id.
-  * @param cmd Control code.
-  * @param pBuff Buffer to send/receive control data.
-  * @retval DRESULT Operation result.
+  * @brief  I/O control operation
+  * @param  pdrv: Physical drive number (0..)
+  * @param  cmd: Control code
+  * @param  *buff: Buffer to send/receive control data
+  * @retval DRESULT: Operation result
   */
-static DRESULT usbh_ioctl(BYTE lun, BYTE cmd, void *pBuff)
+DRESULT USBH_ioctl(BYTE pdrv, BYTE cmd, void *pBuff)
 {
     DRESULT res = RES_ERROR;
     MSC_LUNTypeDef info;
@@ -181,7 +180,7 @@ static DRESULT usbh_ioctl(BYTE lun, BYTE cmd, void *pBuff)
         }
         case GET_SECTOR_COUNT:
         {
-            if (USBH_OK == USBH_MSC_GetLUNInfo(&hUSB_Host, lun, &info))
+            if (USBH_OK == USBH_MSC_GetLUNInfo(&hUSB_Host, pdrv, &info))
             {
                 *(DWORD *)pBuff = (DWORD)info.capacity.block_nbr;
                 res = RES_OK;
@@ -190,7 +189,7 @@ static DRESULT usbh_ioctl(BYTE lun, BYTE cmd, void *pBuff)
         }
         case GET_SECTOR_SIZE:
         {
-            if (USBH_OK == USBH_MSC_GetLUNInfo(&hUSB_Host, lun, &info))
+            if (USBH_OK == USBH_MSC_GetLUNInfo(&hUSB_Host, pdrv, &info))
             {
                 *(WORD *)pBuff = info.capacity.block_size;
                 res = RES_OK;
@@ -199,7 +198,7 @@ static DRESULT usbh_ioctl(BYTE lun, BYTE cmd, void *pBuff)
         }
         case GET_BLOCK_SIZE:
         {
-            if (USBH_OK == USBH_MSC_GetLUNInfo(&hUSB_Host, lun, &info))
+            if (USBH_OK == USBH_MSC_GetLUNInfo(&hUSB_Host, pdrv, &info))
             {
                 *(DWORD *)pBuff = info.capacity.block_size / USB_DEFAULT_BLOCK_SIZE;
                 res = RES_OK;
