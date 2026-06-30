@@ -23,13 +23,17 @@
 /* USER CODE BEGIN Includes */
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include "image.h"
 #include "nextion.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+typedef enum {
+    APP_STATE_POST_LOAD = 0U,
+    APP_STATE_MENU      = 1U
+} AppState_e;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -60,9 +64,9 @@ UART_HandleTypeDef huart3;
 
 static Nextion_Config_t nextion;
 
+static AppState_e gAppState = APP_STATE_POST_LOAD;
 static uint32_t gLastToggleTick = 0U;
 static bool gLedState = false;
-static uint32_t gButtonPressedTick = 0U;
 #define UPDATER_VECTOR_ADDR (UPDATER_ADDR + IMAGE_HDR_SIZE)
 
 /* USER CODE BEGIN PV */
@@ -74,7 +78,6 @@ static void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 void USART3_IRQHandler(void);
 /* USER CODE BEGIN PFP */
-static bool isButtonDebounced(void);
 static void deinit_system(void);
 static void jumpToUpdater(void);
 /* USER CODE END PFP */
@@ -126,38 +129,100 @@ int main(void)
     nextion.nvic_priority = 8U;
     nextion.ack_timeout_ms = 200U;
     (void)nextion_init(&nextion);
+
+    (void)nextion_sendCmd("n0.val=0");
+    (void)nextion_sendCmd("tm0.en=0");
+    (void)nextion_sendCmd("tm1.en=0");
+    (void)nextion_sendCmd("j0.val=100");
+    (void)nextion_sendCmd("page 35");
+    char cmdBuff[NEXTION_CMD_MAX_LEN + 1U];
+    (void)snprintf(cmdBuff, sizeof(cmdBuff), "page35.t1.txt=\"VERSION:V%02u.%02u.%02u\"", (unsigned int)image_header.version_major,
+                                    (unsigned int)image_header.version_minor,(unsigned int)image_header.version_patch);
+    (void)nextion_sendCmd(cmdBuff);
+    HAL_Delay(1000);
+    memset(cmdBuff, 0x00, sizeof(cmdBuff));
+    (void)snprintf(cmdBuff, sizeof(cmdBuff), "page35.t2.txt=\"BUILD:%s\"",image_header.git_sha);
+    (void)nextion_sendCmd(cmdBuff);
+
+    gAppState = APP_STATE_POST_LOAD;
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1)
     {
-
     /* USER CODE END WHILE */
     
     /* USER CODE BEGIN 3 */
+        nextion_process();
 
         uint32_t now = HAL_GetTick();
-
-        if ((now - gLastToggleTick) >= 500) {
+        if ((now - gLastToggleTick) >=500) {
             gLastToggleTick = now;
             gLedState = !gLedState;
-            HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, gLedState ? GPIO_PIN_SET : GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, gLedState ? GPIO_PIN_SET : GPIO_PIN_RESET);
         }
 
-        if (true == isButtonDebounced()) {
-            (void)nextion_sendCmd("page 34");
+        Nextion_Frame_t frame;
 
-            while ((true == nextion_isBusy()) && (HAL_GetTick() < (HAL_GetTick() + 1000U))) {
-                // bekle
+        switch(gAppState) {
+            case APP_STATE_POST_LOAD: {
+                while(NEXTION_STATUS_OK == nextion_readFrame(&frame)) {
+                    if ((NEXTION_FRAME_TOUCH == frame.type) &&
+                        (0x65 == frame.code) && (3U <= frame.length) &&
+                        (0x01U == frame.data[0]) && (0x09U == frame.data[1]) &&
+                        (0x01U == frame.data[2])) {
+                            (void)nextion_sendCmd("page 20");
+
+                            uint32_t deadline = HAL_GetTick() + 1000U;
+                            while (true == nextion_isBusy()) {
+                                nextion_process();
+                                if (HAL_GetTick() > deadline) {
+                                    break;
+                                }
+                            }
+
+                            gAppState = APP_STATE_MENU;
+                            break;
+                    }
+                }
+                break;
             }
 
-            if (NEXTION_STATUS_OK != nextion_getLastCommandStatus()) {
-                continue;
+            case APP_STATE_MENU: {
+                while (NEXTION_STATUS_OK == nextion_readFrame(&frame)) {
+                    if ((NEXTION_FRAME_TOUCH == frame.type) &&
+                        (0x65 == frame.code) && (3U <= frame.length) &&
+                        (0x24U == frame.data[0]) && (0x08U == frame.data[1]) &&
+                        (0x01U == frame.data[2])) {
+                            
+                            (void)nextion_sendCmd("page 34");
+
+                            uint32_t deadline = HAL_GetTick() + 1000U;
+                            while (true == nextion_isBusy()) {
+                                nextion_process();
+                                if (HAL_GetTick() > deadline) {
+                                    break;
+                                }
+                            }
+                        
+                            if (NEXTION_STATUS_OK != nextion_getLastCommandStatus()) {
+                                break; // ACK gelmedi
+                            }
+
+                            deinit_system();
+                            jumpToUpdater();
+                    }
+                }
+                break;
+
             }
 
-            deinit_system();
-            jumpToUpdater();
+            default: {
+                gAppState = APP_STATE_POST_LOAD;
+                break;
+            }
+
         }
     }
     /* USER CODE END 3 */
@@ -207,9 +272,9 @@ static void MX_GPIO_Init(void)
     __HAL_RCC_GPIOA_CLK_ENABLE();
 
     // PD12 — LED
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_RESET);
 
-    gpioInitStruct.Pin = GPIO_PIN_12;
+    gpioInitStruct.Pin = GPIO_PIN_15;
     gpioInitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     gpioInitStruct.Pull = GPIO_NOPULL;
     gpioInitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -223,35 +288,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-static bool isButtonDebounced(void) {
-    
-    GPIO_PinState state = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
-
-    if (GPIO_PIN_SET == state)
-    {
-        if (0U == gButtonPressedTick)
-        {
-            gButtonPressedTick = HAL_GetTick();
-            if (0U == gButtonPressedTick)
-            {
-                gButtonPressedTick = 1U;
-            }
-        }
-        else
-        {
-            if ((HAL_GetTick() - gButtonPressedTick) >= 50U)
-            {
-                gButtonPressedTick = 0U;
-                return true;
-            }
-        }
-    } else {
-        gButtonPressedTick = 0U;
-    }
-
-    return false;
-}
-
 static void deinit_system(void) {
 
     FLASH->ACR &= ~(FLASH_ACR_ICEN | FLASH_ACR_DCEN | FLASH_ACR_PRFTEN);
@@ -297,7 +333,7 @@ static void deinit_system(void) {
 static void jumpToUpdater(void) {
     
     // LED kapatma
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_RESET);
 
     // Kontrol aktarımı sırasında tetiklenmemesi için SysTick'i devre dışı bırakma
     SysTick->CTRL = 0U;

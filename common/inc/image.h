@@ -31,7 +31,7 @@ typedef struct {
     uint8_t  reserved[0x1D8];   // Tam olarak IMAGE_HDR_SIZE byte olacak şekilde doldurma
 } __attribute__((packed)) Image_Hdr_t;
 
-int image_isValid(const Image_Hdr_t *pHeader);
+extern const Image_Hdr_t image_header;
 
 #ifdef __cplusplus
 }

@@ -678,7 +678,7 @@ static bool nextion_frameQueuePop(Nextion_Frame_t *pFrame) {
     }
 
     *pFrame = gFrameQueue.slots[gFrameQueue.tail];
-    gFrameQueue.tail = (gFrameQueue.tail + 1U) % NEXTION_CMD_QUEUE_DEPTH;
+    gFrameQueue.tail = (gFrameQueue.tail + 1U) % NEXTION_FRAME_QUEUE_DEPTH;
 
     return true;
 }
