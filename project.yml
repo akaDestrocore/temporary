@@ -115,8 +115,10 @@
 # Ceedling do the work for you!
 :files:
   :source:
-    - common/src/flash.c
     - updater/src/firmware_validator.c
+    - common/src/flash.c
+    - common/src/nextion.c
+    
 
 # Compilation symbols to be injected into builds
 # See documentation for advanced options:

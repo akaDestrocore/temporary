@@ -83,6 +83,9 @@ FSMC_Bank4_TypeDef FSMC_Bank4_R_VIRTUAL_MEMORY;
 DBGMCU_TypeDef DBGMCU_VIRTUAL_MEMORY;
 USB_OTG_GlobalTypeDef USB_OTG_FS_PERIPH_VIRTUAL_MEMORY;
 USB_OTG_GlobalTypeDef USB_OTG_HS_PERIPH_VIRTUAL_MEMORY;
+NVIC_Type NVIC_VIRTUAL_MEMORY;
+SCB_Type SCB_VIRTUAL_MEMORY;
+SysTick_Type SYSTICK_VIRTUAL_MEMORY;
 
 /*
  * @function name - virtual_mem_set_all
@@ -191,6 +194,10 @@ void virtual_mem_set_all(void)
 
     virtual_mem_set_usb_otg_fs();
     virtual_mem_set_usb_otg_hs();
+
+    virtual_mem_set_nvic();
+    virtual_mem_set_scb();
+    virtual_mem_set_systick();
 }
 
 /*
@@ -1935,4 +1942,34 @@ void virtual_mem_set_usb_otg_hs(void)
     {
         USB_OTG_HS_PERIPH_VIRTUAL_MEMORY.DIEPTXF[i] = 0x00000000;
     }
+}
+
+/*
+ * @function name - virtual_mem_set_nvic
+ *
+ * @brief - function to initialize virtual memory for NVIC
+ */
+void virtual_mem_set_nvic(void)
+{
+    (void)memset(&NVIC_VIRTUAL_MEMORY, 0x00, sizeof(NVIC_VIRTUAL_MEMORY));
+}
+
+/*
+ * @function name - virtual_mem_set_scb
+ *
+ * @brief - function to initialize virtual memory for SCB
+ */
+void virtual_mem_set_scb(void)
+{
+    (void)memset(&SCB_VIRTUAL_MEMORY, 0x00, sizeof(SCB_VIRTUAL_MEMORY));
+}
+
+/*
+ * @function name - virtual_mem_set_systick
+ *
+ * @brief - function to initialize virtual memory for SysTick
+ */
+void virtual_mem_set_systick(void)
+{
+    (void)memset(&SYSTICK_VIRTUAL_MEMORY, 0x00, sizeof(SYSTICK_VIRTUAL_MEMORY));
 }

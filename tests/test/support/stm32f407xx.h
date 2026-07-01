@@ -37,6 +37,8 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#include <stdint.h>
+
 /** @addtogroup Configuration_section_for_CMSIS
   * @{
   */
@@ -1147,9 +1149,9 @@ extern DBGMCU_TypeDef DBGMCU_VIRTUAL_MEMORY;
 extern USB_OTG_GlobalTypeDef USB_OTG_FS_PERIPH_VIRTUAL_MEMORY;
 extern USB_OTG_GlobalTypeDef USB_OTG_HS_PERIPH_VIRTUAL_MEMORY;
 
-static SysTick_Type gSysTick_VIRTUAL __attribute__((unused));
-static NVIC_Type    gNVIC_VIRTUAL    __attribute__((unused));
-static SCB_Type     gSCB_VIRTUAL     __attribute__((unused));
+extern NVIC_Type NVIC_VIRTUAL_MEMORY;
+extern SCB_Type SCB_VIRTUAL_MEMORY;
+extern SysTick_Type SYSTICK_VIRTUAL_MEMORY;
 
 
 /** @addtogroup Peripheral_declaration
@@ -1240,6 +1242,14 @@ static SCB_Type     gSCB_VIRTUAL     __attribute__((unused));
 #define DBGMCU              ((DBGMCU_TypeDef *) &DBGMCU_VIRTUAL_MEMORY)
 #define USB_OTG_FS          ((USB_OTG_GlobalTypeDef *) &USB_OTG_FS_PERIPH_VIRTUAL_MEMORY)
 #define USB_OTG_HS          ((USB_OTG_GlobalTypeDef *) &USB_OTG_HS_PERIPH_VIRTUAL_MEMORY)
+
+#undef NVIC
+#undef SCB
+#undef SysTick
+#define NVIC                (&NVIC_VIRTUAL_MEMORY)
+#define SCB                 (&SCB_VIRTUAL_MEMORY)
+#define SysTick             (&SYSTICK_VIRTUAL_MEMORY)
+
 
 /**
   * @}

@@ -111,6 +111,10 @@ void virtual_mem_set_dbgmcu(void);
 void virtual_mem_set_usb_otg_fs(void);
 void virtual_mem_set_usb_otg_hs(void);
 
+void virtual_mem_set_nvic(void);
+void virtual_mem_set_scb(void);
+void virtual_mem_set_systick(void);
+
 #ifdef __cplusplus
 }
 #endif
