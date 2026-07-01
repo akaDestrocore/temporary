@@ -53,25 +53,25 @@ typedef enum {
  * Nextion yanıt kodları (bkcmd=3 modu)
  * ============================================================*/
 typedef enum {
-    NEXTION_RESP_INVALID_INSTR      = 0x00U,
-    NEXTION_RESP_SUCCESS            = 0x01U,
-    NEXTION_RESP_INVALID_CMP_ID     = 0x02U,
-    NEXTION_RESP_INVALID_PAGE_ID    = 0x03U,
-    NEXTION_RESP_INVALID_PIC_ID     = 0x04U,
-    NEXTION_RESP_INVALID_FONT_ID    = 0x05U,
-    NEXTION_RESP_INVALID_FILE_OP    = 0x06U,
-    NEXTION_RESP_INVALID_CRC        = 0x09U,
-    NEXTION_RESP_INVALID_BAUD       = 0x11U,
-    NEXTION_RESP_INVALID_WAVEFORM   = 0x12U,
-    NEXTION_RESP_INVALID_VAR        = 0x1AU,
-    NEXTION_RESP_INVALID_VAR_OP     = 0x1BU,
-    NEXTION_RESP_ASSIGN_FAIL        = 0x1CU,
-    NEXTION_RESP_EEPROM_FAIL        = 0x1DU,
-    NEXTION_RESP_PARAM_CNT_INVALID  = 0x1EU,
-    NEXTION_RESP_PARAM_IO_FAIL      = 0x1FU,
-    NEXTION_RESP_ESCAPE_INVALID     = 0x20U,
-    NEXTION_RESP_VAR_TOO_LONG       = 0x23U,
-    NEXTION_RESP_SERIAL_BUF_OVF     = 0x24U
+    NEXTION_RESP_INVALID_INSTR      = 0x00U,    // Invalid instruction
+    NEXTION_RESP_SUCCESS            = 0x01U,    // Instruction Successful
+    NEXTION_RESP_INVALID_CMP_ID     = 0x02U,    // Invalid Component ID
+    NEXTION_RESP_INVALID_PAGE_ID    = 0x03U,    // Invalid Page ID
+    NEXTION_RESP_INVALID_PIC_ID     = 0x04U,    // Invalid Picture ID
+    NEXTION_RESP_INVALID_FONT_ID    = 0x05U,    // Invalid Font ID
+    NEXTION_RESP_INVALID_FILE_OP    = 0x06U,    // Invalid File Operation
+    NEXTION_RESP_INVALID_CRC        = 0x09U,    // Invalid CRC
+    NEXTION_RESP_INVALID_BAUD       = 0x11U,    // Invalid Baud rate Setting
+    NEXTION_RESP_INVALID_WAVEFORM   = 0x12U,    // Invalid Waveform ID or Channel #
+    NEXTION_RESP_INVALID_VAR        = 0x1AU,    // Invalid Variable name or attribute
+    NEXTION_RESP_INVALID_VAR_OP     = 0x1BU,    // Invalid Variable Operation
+    NEXTION_RESP_ASSIGN_FAIL        = 0x1CU,    // Assignment failed to assign
+    NEXTION_RESP_EEPROM_FAIL        = 0x1DU,    // EEPROM Operation failed
+    NEXTION_RESP_PARAM_CNT_INVALID  = 0x1EU,    // Invalid Quantity of Parameters
+    NEXTION_RESP_PARAM_IO_FAIL      = 0x1FU,    // IO Operation failed
+    NEXTION_RESP_ESCAPE_INVALID     = 0x20U,    // Escape Character Invalid
+    NEXTION_RESP_VAR_TOO_LONG       = 0x23U,    // Variable name too long
+    NEXTION_RESP_SERIAL_BUF_OVF     = 0x24U     // Serial Buffer Overflow
 } Nextion_Resp_e;
 
 /* ==============================================================
@@ -82,13 +82,14 @@ typedef enum {
     NEXTION_STATE_SENDING   = 1U,
     NEXTION_STATE_WAIT_ACK  = 2U,
     NEXTION_STATE_TIMEOUT   = 3U,
-    NEXTION_STATE_ERROR     = 4U
+    NEXTION_STATE_FAULTED   = 4U
 } Nextion_State_e;
 
 /* ==============================================================
  * Frame tipleri
  * =============================================================*/
-typedef enum {
+
+ typedef enum {
     NEXTION_FRAME_ACK       = 0U,
     NEXTION_FRAME_TOUCH     = 1U,
     NEXTION_FRAME_PAGE      = 3U,

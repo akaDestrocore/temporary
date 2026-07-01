@@ -39,6 +39,10 @@ extern "C" {
 
 #include <stdint.h>
 
+#define NVIC_SetPriority   NVIC_SetPriority_realCmsisUnused
+#define NVIC_EnableIRQ     NVIC_EnableIRQ_realCmsisUnused
+#define NVIC_DisableIRQ    NVIC_DisableIRQ_realCmsisUnused
+
 /** @addtogroup Configuration_section_for_CMSIS
   * @{
   */
@@ -174,9 +178,34 @@ typedef enum
   * @}
   */
 
+#define NVIC_SetPriority   NVIC_SetPriority_realCmsisUnused
+#define NVIC_EnableIRQ     NVIC_EnableIRQ_realCmsisUnused
+#define NVIC_DisableIRQ    NVIC_DisableIRQ_realCmsisUnused
+
 #include "core_cm4.h"             /* Cortex-M4 processor and core peripherals */
 #include "system_stm32f4xx.h"
-#include <stdint.h>
+// #include <stdint.h>
+
+#undef NVIC_SetPriority
+#undef NVIC_EnableIRQ
+#undef NVIC_DisableIRQ
+
+static inline void NVIC_SetPriority(IRQn_Type IRQn, uint32_t priority)
+{
+    (void)IRQn;
+    (void)priority;
+}
+
+static inline void NVIC_EnableIRQ(IRQn_Type IRQn)
+{
+    (void)IRQn;
+}
+
+static inline void NVIC_DisableIRQ(IRQn_Type IRQn)
+{
+    (void)IRQn;
+}
+
 
 /** @addtogroup Peripheral_registers_structures
   * @{

@@ -222,7 +222,7 @@ void nextion_process(void) {
                     gState = NEXTION_STATE_SENDING;
                 } else {
                     gLastCommandStatus = NEXTION_STATUS_ERROR;
-                    gState = NEXTION_STATE_ERROR;
+                    gState = NEXTION_STATE_FAULTED;
                 }
             }
             break;
@@ -235,7 +235,7 @@ void nextion_process(void) {
                     if (NEXTION_STATUS_OK == gLastCommandStatus) {
                         gState = NEXTION_STATE_IDLE;
                     } else {
-                        gState = NEXTION_STATE_ERROR;
+                        gState = NEXTION_STATE_FAULTED;
                     }
                 } else {
                     gAckStartTick = HAL_GetTick();
@@ -252,7 +252,7 @@ void nextion_process(void) {
                 if (NEXTION_STATUS_OK == gLastCommandStatus) {
                     gState = NEXTION_STATE_IDLE;
                 } else {
-                    gState = NEXTION_STATE_ERROR;
+                    gState = NEXTION_STATE_FAULTED;
                 }
             } else if ((HAL_GetTick() - gAckStartTick) >= gConfig.ack_timeout_ms) {
                 gLastCommandStatus = NEXTION_STATUS_TIMEOUT;
@@ -268,7 +268,7 @@ void nextion_process(void) {
             break;
         }
 
-        case NEXTION_STATE_ERROR: {
+        case NEXTION_STATE_FAULTED: {
             gState = NEXTION_STATE_IDLE;
             break;
         }
