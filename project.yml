@@ -23,6 +23,7 @@
   :test_file_prefix: test_
   :default_tasks:
     - test:all
+    - gcov:all
 
   # performance options. If your tools start giving mysterious errors, consider 
   # dropping this to 1 to force single-tasking
@@ -56,7 +57,7 @@
   :enabled:
     #- beep                           # beeps when finished, so you don't waste time waiting for ceedling
     - module_generator                # handy for quickly creating source, header, and test templates
-    #- gcov                           # test coverage using gcov. Requires gcc, gcov, and a coverage analyzer like gcovr
+    - gcov                           # test coverage using gcov. Requires gcc, gcov, and a coverage analyzer like gcovr
     #- bullseye                       # test coverage using bullseye. Requires bullseye for your platform
     #- command_hooks                  # write custom actions to be called at different points during the build process
     #- compile_commands_json_db       # generate a compile_commands.json file
@@ -65,7 +66,7 @@
     #- fake_function_framework        # use FFF instead of CMock
 
     # Report options (You'll want to choose one stdout option, but may choose multiple stored options if desired)
-    #- report_build_warnings_log
+    - report_build_warnings_log
     #- report_tests_gtestlike_stdout
     #- report_tests_ide_stdout
     - report_tests_log_factory
@@ -77,7 +78,7 @@
 :report_tests_log_factory:
   :reports:
     # - json 
-    # - junit 
+    - junit 
     - cppunit 
     # - html 
 
@@ -130,7 +131,7 @@
     - TEST # Simple list option to add symbol 'TEST' to compilation of all files in all test executables
     - STM32F407xx
     - USE_HAL_DRIVER
-    - UPDATER_BACKEND_CH376_UART
+    - USB_OTG
     - 'GIT_COMMIT_HASH="00000000"'
   :release: []
 
@@ -153,6 +154,8 @@
         - -Wno-int-to-pointer-cast
         - -Wno-implicit-function-declaration
         - -Wno-overflow
+        - -Wall
+        - -Wextra
 
 # Configuration Options specific to CMock. See CMock docs for details
 :cmock:
@@ -257,7 +260,7 @@
     - HtmlBasic
     # - HtmlDetailed
     # - Text
-    # - Cobertura
+    - Cobertura
     # - SonarQube
     # - JSON
     # - HtmlInline
